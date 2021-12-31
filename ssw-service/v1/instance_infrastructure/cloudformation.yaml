@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 static website
+# Resources:
+Outputs:
+  WebsiteURL:
+    Description: The URL to access your static website
+    Value: '{{environment.outputs.WebsiteURL}}/{{service_instance.name}}/'
+  S3BucketSecureURL:
+    Description: Secure S3 Bucket URL
+    Value: '{{environment.outputs.S3BucketSecureURL}}/{{service_instance.name}}/'
