@@ -14,7 +14,7 @@ Outputs:
   S3BucketName:
     Value: !GetAtt
       - S3Bucket
-      - Name
+      - BucketName
   WebsiteURL:
     Value: !GetAtt
       - S3Bucket
