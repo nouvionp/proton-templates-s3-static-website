@@ -11,6 +11,10 @@ Resources:
         ErrorDocument: {{ environment.inputs.error_document }}
     DeletionPolicy: Retain
 Outputs:
+  S3BucketName:
+    Value: !GetAtt
+      - S3Bucket
+      - Name
   WebsiteURL:
     Value: !GetAtt
       - S3Bucket

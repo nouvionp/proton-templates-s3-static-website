@@ -1,6 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: S3 static website
-# Resources:
 Outputs:
   WebsiteURL:
     Description: The URL to access your static website

@@ -1,15 +1,35 @@
 schema:
   format:
     openapi: "3.0.0"
-  environment_input_type: "EnvironmentInput"
+  service_input_type: "WebsiteInputs"
+  pipeline_input_type: "PipelineInputs"
+
   types:
-    EnvironmentInput:
+    WebsiteInputs:
       type: object
-      description: "Input properties for my environment"
+      description: "Inputs for your static website hosted on S3"
       properties:
-        ttl_attribute:
+        branch_name:
           type: string
-          description: "Which attribute to use as the ttl attribute"
-          default: ttl
-          minLength: 1
-          maxLength: 100
+          description: "The branch to use for this instance of the website"
+        is_prod:
+          type: bool
+          description: "Is this prod stage and branch"
+          default: false
+
+    PipelineInputs:
+      type: object
+      description: "Inputs for your static website pipeline"
+      properties:
+        # unit_test_command:
+        #   type: string
+        #   description: "The command to run to unit test the application code"
+        #   default: "echo 'add your unit test command here'"
+        #   minLength: 1
+        #   maxLength: 200
+        # packaging_command:
+        #   type: string
+        #   description: "The commands which packages your code into a file called function.zip"
+        #   default: "make publish"
+        #   minLength: 1
+        #   maxLength: 200

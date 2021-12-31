@@ -1,0 +1,65 @@
+Resources:
+Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn:
+        Fn::GetAtt:
+          - PipelineRole
+          - Arn
+{% for service_instance in service_instances %}
+      Stages:
+        - Actions:
+            - ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: "1"
+              Configuration:
+                ConnectionArn: '{{ service.repository_connection_arn }}'
+                FullRepositoryId: '{{ service.repository_id }}'
+                BranchName:
+                  {% if service_instance.branch_name %}
+                    '{{ service_instance.branch_name }}'
+                  {% else %}
+                      '{{ service.branch_name }}'
+                  {% endif %}
+              Name: Checkout
+              OutputArtifacts:
+                - Name: SourceArtifact
+              RunOrder: 1
+          Name: Source
+        - Actions:
+            - ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: '{{ service.name }}'
+              InputArtifacts:
+                - Name: SourceArtifact
+              Name: Build
+              OutputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 1
+          Name: Build
+        - Actions:
+            - ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3
+                Version: "1"
+              Configuration:
+                BucketName: {{environment.outputs.S3BucketName}},
+                Extract: "true"
+              InputArtifacts:
+                - Name: BuildOutput
+              Name: Deploy
+              RunOrder: 1
+          Name: 'Deploy'
+{%- endfor %}
+
+Outputs:
+  PipelineEndpoint:
+    Description: Your static website pipeline URL
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/${Pipeline}/view?region=${AWS::Region}"
