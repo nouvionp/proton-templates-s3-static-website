@@ -51,6 +51,7 @@ Pipeline:
                 Version: "1"
               Configuration:
                 BucketName: {{environment.outputs.S3BucketName}},
+                DeploymentPath: '/{{ service_instance.name }}',
                 Extract: "true"
               InputArtifacts:
                 - Name: BuildOutput
