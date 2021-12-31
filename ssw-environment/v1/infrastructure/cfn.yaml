@@ -12,9 +12,7 @@ Resources:
     DeletionPolicy: Retain
 Outputs:
   S3BucketName:
-    Value: !Ref
-      - S3Bucket
-      - BucketName
+    Value: !Ref S3Bucket
   WebsiteURL:
     Value: !GetAtt
       - S3Bucket
