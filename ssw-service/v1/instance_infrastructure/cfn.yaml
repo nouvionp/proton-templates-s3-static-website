@@ -1,5 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: S3 static website
+Resources:
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: '{{service.name}}/{{service_instance.name}}'
 Outputs:
   WebsiteURL:
     Description: The URL to access your static website

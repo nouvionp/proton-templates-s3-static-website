@@ -1,64 +1,140 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 static website
 Resources:
-Pipeline:
-    Type: AWS::CodePipeline::Pipeline
+  PipelineRole:
+    Type: AWS::IAM::Role
     Properties:
-      RoleArn:
-        Fn::GetAtt:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+        Version: "2012-10-17"
+
+  PipelineArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    DependsOn:
+      - PipelineRole
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: '{{ pipeline.inputs.image }}'
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: service_name
+            Type: PLAINTEXT
+            Value: '{{service.name}}'
+      ServiceRole: !GetAtt
           - PipelineRole
           - Arn
-{% for service_instance in service_instances %}
-      Stages:
-        - Actions:
-            - ActionTypeId:
-                Category: Source
-                Owner: AWS
-                Provider: CodeStarSourceConnection
-                Version: "1"
-              Configuration:
-                ConnectionArn: '{{ service.repository_connection_arn }}'
-                FullRepositoryId: '{{ service.repository_id }}'
-                BranchName:
-                  {% if service_instance.branch_name %}
-                    '{{ service_instance.branch_name }}'
-                  {% else %}
-                      '{{ service.branch_name }}'
-                  {% endif %}
-              Name: Checkout
-              OutputArtifacts:
-                - Name: SourceArtifact
-              RunOrder: 1
-          Name: Source
-        - Actions:
-            - ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: "1"
-              Configuration:
-                ProjectName: '{{ service.name }}'
-              InputArtifacts:
-                - Name: SourceArtifact
-              Name: Build
-              OutputArtifacts:
-                - Name: BuildOutput
-              RunOrder: 1
-          Name: Build
-        - Actions:
-            - ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: S3
-                Version: "1"
-              Configuration:
-                BucketName: {{environment.outputs.S3BucketName}},
-                DeploymentPath: '/{{ service_instance.name }}',
-                Extract: "true"
-              InputArtifacts:
-                - Name: BuildOutput
-              Name: Deploy
-              RunOrder: 1
-          Name: 'Deploy'
-{%- endfor %}
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub |
+          version: "0.2"
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 14.x
+              commands:
+                - "cd $CODEBUILD_SRC_DIR"
+                - "npm install"
+            pre_build:
+              commands:
+                - "cd $CODEBUILD_SRC_DIR"
+                - "{{ pipeline.inputs.pre_build_command }}"
+            build:
+              commands:
+                - "cd $CODEBUILD_SRC_DIR"
+                - "{{ pipeline.inputs.pre_build_command }}"
+
+  Pipeline:
+      Type: AWS::CodePipeline::Pipeline
+      DependsOn:
+        - PipelineRole
+        - PipelineArtifactsBucket
+      Properties:
+        RoleArn: !GetAtt
+          - PipelineRole
+          - Arn
+        ArtifactStore:
+          Location:
+            Ref: PipelineArtifactsBucket
+          Type: S3
+  {% for service_instance in service_instances %}
+        Stages:
+          - Actions:
+              - ActionTypeId:
+                  Category: Source
+                  Owner: AWS
+                  Provider: CodeStarSourceConnection
+                  Version: "1"
+                Configuration:
+                  ConnectionArn: '{{ service.repository_connection_arn }}'
+                  FullRepositoryId: '{{ service.repository_id }}'
+                  BranchName:
+                    {% if service_instance.inputs.branch_name %}
+                      '{{ service_instance.inputs.branch_name }}'
+                    {% else %}
+                        '{{ service.branch_name }}'
+                    {% endif %}
+                Name: Checkout
+                OutputArtifacts:
+                  - Name: SourceArtifact
+                RunOrder: 1
+            Name: Source
+          - Actions:
+              - ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: "1"
+                Configuration:
+                  ProjectName:
+                    Ref: BuildProject
+                InputArtifacts:
+                  - Name: SourceArtifact
+                Name: Build
+                OutputArtifacts:
+                  - Name: BuildOutput
+                RunOrder: 1
+            Name: Build
+          - Actions:
+              - ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: S3
+                  Version: "1"
+                Configuration:
+                  BucketName:
+                    {% if service_instance.inputs.is_prod %}
+                      '{{ service_instance.environment.outputs.S3BucketName }}'
+                    {% else %}
+                      '{{ service_instance.environment.outputs.S3BucketName }}/{{ service_instance.name }}'
+                    {% endif %}
+                  Extract: "true"
+                InputArtifacts:
+                  - Name: BuildOutput
+                Name: Deploy
+                RunOrder: 1
+            Name: 'Deploy'
+  {%- endfor %}
 
 Outputs:
   PipelineEndpoint:

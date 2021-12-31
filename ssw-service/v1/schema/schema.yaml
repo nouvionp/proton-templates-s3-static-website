@@ -3,7 +3,6 @@ schema:
     openapi: "3.0.0"
   service_input_type: "WebsiteInputs"
   pipeline_input_type: "PipelineInputs"
-
   types:
     WebsiteInputs:
       type: object
@@ -13,23 +12,22 @@ schema:
           type: string
           description: "The branch to use for this instance of the website"
         is_prod:
-          type: bool
+          type: boolean
           description: "Is this prod stage and branch"
           default: false
-
     PipelineInputs:
       type: object
       description: "Inputs for your static website pipeline"
       properties:
-        # unit_test_command:
-        #   type: string
-        #   description: "The command to run to unit test the application code"
-        #   default: "echo 'add your unit test command here'"
-        #   minLength: 1
-        #   maxLength: 200
-        # packaging_command:
-        #   type: string
-        #   description: "The commands which packages your code into a file called function.zip"
-        #   default: "make publish"
-        #   minLength: 1
-        #   maxLength: 200
+        image:
+          type: string
+          description: "CodeBuild image to create the build"
+          default: "aws/codebuild/standard:5.0"
+        pre_build_command:
+          type: string
+          description: "Pre-build command"
+          default: "npm install"
+        build_command:
+          type: string
+          description: "Build command"
+          default: "npm build"
