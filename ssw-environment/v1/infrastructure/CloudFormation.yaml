@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: This environment holds a simple DDB table shared between services.
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: {{ environment.inputs.index_document }}
+        ErrorDocument: {{ environment.inputs.error_document }}
+    DeletionPolicy: Retain
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt
+      - S3Bucket
+      - WebsiteURL
+    Description: URL for website hosted on S3
+  S3BucketSecureURL:
+    Value: !Join
+      - ''
+      - - 'https://'
+        - !GetAtt
+          - S3Bucket
+          - DomainName
+    Description: Name of S3 bucket to hold website content
