@@ -1,5 +1,5 @@
 infrastructure:
   templates:
-    - file: "cloudformation.yaml"
+    - file: "cfn.yaml"
       rendering_engine: jinja
       template_language: cloudformation
