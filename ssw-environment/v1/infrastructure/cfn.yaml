@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: This environment is a simple S3 bucket setup to serve a static website
 Resources:
   S3Bucket:
-    Type: 'AWS::S3::Bucket'
+    Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
       PublicAccessBlockConfiguration:
