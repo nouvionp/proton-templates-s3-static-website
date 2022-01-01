@@ -23,11 +23,23 @@ schema:
           type: string
           description: "CodeBuild image to create the build"
           default: "aws/codebuild/standard:5.0"
+        install_command:
+          type: string
+          description: "Install command"
+          default: "npm install"
         pre_build_command:
           type: string
           description: "Pre-build command"
-          default: "npm install"
+          default: "npm run test"
         build_command:
           type: string
           description: "Build command"
-          default: "npm build"
+          default: "npm run build"
+        output_path:
+          type: string
+          description: "Generated output files to deploy"
+          default: "./dist"
+        file_match:
+          type: string
+          description: "File pattern to filter which files to deploy"
+          default: "**/*"

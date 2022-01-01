@@ -6,6 +6,11 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: PublicRead
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
       WebsiteConfiguration:
         IndexDocument: {{ environment.inputs.index_document }}
         ErrorDocument: {{ environment.inputs.error_document }}
@@ -13,6 +18,10 @@ Resources:
 Outputs:
   S3BucketName:
     Value: !Ref S3Bucket
+  S3BucketArn:
+    Value: !GetAtt
+      - S3Bucket
+      - Arn
   WebsiteURL:
     Value: !GetAtt
       - S3Bucket

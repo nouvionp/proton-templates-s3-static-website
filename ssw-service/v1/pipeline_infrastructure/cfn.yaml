@@ -1,6 +1,7 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Description: S3 static website
 Resources:
+  # We need to create a role that will have the permissions to create a pipeline, access S3 buckets, etc ...
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -9,9 +10,14 @@ Resources:
           - Action: sts:AssumeRole
             Effect: Allow
             Principal:
-              Service: codepipeline.amazonaws.com
+              Service:
+                - codepipeline.amazonaws.com
+                - codebuild.amazonaws.com
+                - codedeploy.amazonaws.com
+                - s3.amazonaws.com
         Version: "2012-10-17"
 
+  # We need to create an artifact bucket to store the output of our build before it gets deployed.
   PipelineArtifactsBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -25,6 +31,50 @@ Resources:
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
+  # Our pipeline role needs extra permissions which can be added via a custom policy.
+  PipelineRoleDefaultPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - "{{ service_instances[0].environment.outputs.S3BucketArn }}"
+              - "{{ service_instances[0].environment.outputs.S3BucketArn }}/*"
+              - !GetAtt
+                - PipelineArtifactsBucket
+                - Arn
+              - Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - PipelineArtifactsBucket
+                      - Arn
+                  - /*
+          - Action:
+              - codebuild:*
+              - codestar-connections:*
+              - logs:*
+            Effect: Allow
+            Resource: "*"
+
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Resource: !GetAtt
+              - PipelineRole
+              - Arn
+
+        Version: "2012-10-17"
+      PolicyName: PipelineRoleDefaultPolicy
+      Roles:
+        - Ref: PipelineRole
+
   BuildProject:
     Type: AWS::CodeBuild::Project
     DependsOn:
@@ -34,13 +84,13 @@ Resources:
         Type: CODEPIPELINE
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: '{{ pipeline.inputs.image }}'
+        Image: "{{ pipeline.inputs.image }}"
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
           - Name: service_name
             Type: PLAINTEXT
-            Value: '{{service.name}}'
+            Value: "{{service.name}}"
       ServiceRole: !GetAtt
           - PipelineRole
           - Arn
@@ -53,20 +103,31 @@ Resources:
               runtime-versions:
                 nodejs: 14.x
               commands:
-                - "cd $CODEBUILD_SRC_DIR"
-                - "npm install"
+                - "{{ pipeline.inputs.install_command }}"
             pre_build:
               commands:
-                - "cd $CODEBUILD_SRC_DIR"
                 - "{{ pipeline.inputs.pre_build_command }}"
             build:
               commands:
-                - "cd $CODEBUILD_SRC_DIR"
-                - "{{ pipeline.inputs.pre_build_command }}"
+                - "echo Build started on `date`"
+                - "{{ pipeline.inputs.build_command }}"
+                - "echo Build completed on `date`"
+          # Include only the files required for your application to run.
+          # Do not use recursively include artifacts from node_modules directory as it will include unnecessary packages
+          # used only for building and testing.
+          # ExpressJS apps will need other artifact directories included (bin/*, public/*, routes/*, views/* etc).
+          artifacts:
+            base-directory: "{{ pipeline.inputs.output_path }}"
+            files:
+              - "{{ pipeline.inputs.file_match }}"
+          cache:
+            paths:
+              - "./node_modules/**/*"
 
   Pipeline:
       Type: AWS::CodePipeline::Pipeline
       DependsOn:
+        - PipelineRoleDefaultPolicy
         - PipelineRole
         - PipelineArtifactsBucket
       Properties:
@@ -86,13 +147,13 @@ Resources:
                   Provider: CodeStarSourceConnection
                   Version: "1"
                 Configuration:
-                  ConnectionArn: '{{ service.repository_connection_arn }}'
-                  FullRepositoryId: '{{ service.repository_id }}'
+                  ConnectionArn: "{{ service.repository_connection_arn }}"
+                  FullRepositoryId: "{{ service.repository_id }}"
                   BranchName:
                     {% if service_instance.inputs.branch_name %}
-                      '{{ service_instance.inputs.branch_name }}'
+                      "{{ service_instance.inputs.branch_name }}"
                     {% else %}
-                        '{{ service.branch_name }}'
+                        "{{ service.branch_name }}"
                     {% endif %}
                 Name: Checkout
                 OutputArtifacts:
@@ -124,16 +185,16 @@ Resources:
                 Configuration:
                   BucketName:
                     {% if service_instance.inputs.is_prod %}
-                      '{{ service_instance.environment.outputs.S3BucketName }}'
+                      "{{ service_instance.environment.outputs.S3BucketName }}"
                     {% else %}
-                      '{{ service_instance.environment.outputs.S3BucketName }}/{{ service_instance.name }}'
+                      "{{ service_instance.environment.outputs.S3BucketName }}/{{ service_instance.name }}"
                     {% endif %}
                   Extract: "true"
                 InputArtifacts:
                   - Name: BuildOutput
                 Name: Deploy
                 RunOrder: 1
-            Name: 'Deploy'
+            Name: Deploy
   {%- endfor %}
 
 Outputs:
