@@ -15,6 +15,28 @@ Resources:
         IndexDocument: {{ environment.inputs.index_document }}
         ErrorDocument: {{ environment.inputs.error_document }}
     DeletionPolicy: Retain
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref S3Bucket
+                - /*
+            Principal: '*'
+            # Condition:
+            #   StringLike:
+            #     'aws:Referer':
+            #       - 'http://www.example.com/*'
+            #       - 'http://example.net/*'
 Outputs:
   S3BucketName:
     Value: !Ref S3Bucket
