@@ -32,12 +32,9 @@ Resources:
                 - !Ref S3Bucket
                 - /*
             Principal: '*'
-            # Condition:
-            #   StringLike:
-            #     'aws:Referer':
-            #       - 'http://www.example.com/*'
-            #       - 'http://example.net/*'
 Outputs:
+  S3BucketNameCommitTest:
+    Value: !Ref S3Bucket
   S3BucketName:
     Value: !Ref S3Bucket
   S3BucketArn:
