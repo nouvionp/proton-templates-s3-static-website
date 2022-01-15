@@ -32,6 +32,7 @@ Resources:
                 - !Ref S3Bucket
                 - /*
             Principal: '*'
+
 Outputs:
   S3BucketNameCommitTest:
     Value: !Ref S3Bucket
@@ -41,7 +42,7 @@ Outputs:
     Value: !GetAtt
       - S3Bucket
       - Arn
-  WebsiteURL:
+  S3WebsiteURL:
     Value: !GetAtt
       - S3Bucket
       - WebsiteURL
@@ -54,3 +55,5 @@ Outputs:
           - S3Bucket
           - DomainName
     Description: Secure S3 Bucket URL
+  DomainName:
+    Value: {{ environment.inputs.domain_name }}

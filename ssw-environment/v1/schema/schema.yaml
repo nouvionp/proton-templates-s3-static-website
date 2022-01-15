@@ -7,6 +7,9 @@ schema:
       type: object
       description: "Input properties for my static website bucket"
       properties:
+        domain_name:
+          type: string
+          description: "If you add a domain name we will setup cloudfront for you. Make sure you've registered this domain name with AWS Leave empty if you want to stick with the S3 Urls."
         index_document:
           type: string
           description: "Index document for the static website"
