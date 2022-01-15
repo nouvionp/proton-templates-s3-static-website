@@ -10,6 +10,7 @@ schema:
         domain_name:
           type: string
           description: "If you add a domain name we will setup cloudfront for you. Make sure you've registered this domain name with AWS Leave empty if you want to stick with the S3 Urls."
+          default: ""
         index_document:
           type: string
           description: "Index document for the static website"
