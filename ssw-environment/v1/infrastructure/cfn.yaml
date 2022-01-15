@@ -56,4 +56,11 @@ Outputs:
           - DomainName
     Description: Secure S3 Bucket URL
   DomainName:
-    Value: {{ environment.inputs.domain_name }}
+    Value:
+      {% if environment.inputs.domain_name %}
+        {{ environment.inputs.domain_name }}
+      {% else %}
+        - !GetAtt
+          - S3Bucket
+          - DomainName
+      {% endif %}
