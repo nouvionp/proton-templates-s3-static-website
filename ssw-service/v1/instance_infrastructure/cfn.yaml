@@ -10,5 +10,5 @@ Outputs:
     Description: The URL to access your static website
     Value: "{{environment.outputs.WebsiteURL}}/{{service_instance.name}}/"
   S3BucketSecureURL:
-    Description: Secure S3 Bucket URL
+    Description: S3 Bucket URL
     Value: "{{environment.outputs.S3BucketSecureURL}}/{{service_instance.name}}/"
