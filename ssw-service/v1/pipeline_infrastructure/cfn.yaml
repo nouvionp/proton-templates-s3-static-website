@@ -199,5 +199,5 @@ Resources:
 
 Outputs:
   PipelineEndpoint:
-    Description: Your static website pipeline URL
+    Description: The static website pipeline URL
     Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/${Pipeline}/view?region=${AWS::Region}"
