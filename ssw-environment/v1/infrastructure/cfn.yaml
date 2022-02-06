@@ -1,125 +1,18 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: This environment is a simple S3 bucket setup to serve a static website with CloudFront enabled
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "We do not need any shared resources at this time, so this environment is just a shell. Because CloudFormation requires at least one resource, we will create a SSM parameter"
 Resources:
-  # Create an S3 bucket which will host our HTML/CSS/JS code
-  S3Bucket:
-    Type: AWS::S3::Bucket
+  ProjectName:
+    Type: AWS::SSM::Parameter
     Properties:
-      # AccessControl: PublicRead
-      # BucketName: {{ environment.inputs.bucket_name }}
-      # PublicAccessBlockConfiguration:
-      #   BlockPublicAcls: true
-      #   BlockPublicPolicy: true
-      #   IgnorePublicAcls: true
-      #   RestrictPublicBuckets: true
-      WebsiteConfiguration:
-        IndexDocument: {{ environment.inputs.index_document }}
-        ErrorDocument: {{ environment.inputs.error_document }}
-    # Here we're just telling CloudFormation to NOT delete our S3 bucket when the CloudFormation stack is deleted.
-    # This also means wwe could delete our stack and rebuild it but still retain our S3 bucket.
-    DeletionPolicy: Retain
+      Description: "Name of the static website project"
+      Name: "ProjectName"
+      Type: String
+      Value: {{ environment.inputs.project_name }}
+  # TODO: Potentially create a shared ssl certificate here?
 
-  # Create Read policy for CloudFront to be able to access your bucket.
-  S3BucketReadPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref S3Bucket
-      PolicyDocument:
-        Statement:
-          - Action: "s3:GetObject"
-            Effect: Allow
-            Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
-            Principal: "*"
-            # In an ideal scenario the policy would only grant these rights to CloudFront,
-            # we do not do it from scratch as many projects start without having a domain name specified
-            # and we want to test the code as soon as possible.
-            # Principal: CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
-
-  # Configure Access to CloudFront
-  CloudFrontOriginAccessIdentity:
-    Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
-    Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Ref S3Bucket
-
-  # Configure CloudFront
-  CloudFrontDistribution:
-    Type: "AWS::CloudFront::Distribution"
-    Properties:
-      DistributionConfig:
-        CustomErrorResponses:
-          - ErrorCode: 403
-            ResponseCode: 404
-            ResponsePagePath: {{ environment.inputs.error_document }}
-        DefaultCacheBehavior:
-          AllowedMethods:
-            - GET
-            - HEAD
-            - OPTIONS
-          CachedMethods:
-            - GET
-            - HEAD
-            - OPTIONS
-          Compress: true
-          DefaultTTL: 3600# in seconds
-          ForwardedValues:
-            Cookies:
-              Forward: none
-            QueryString: false
-          MaxTTL: 86400 # in seconds
-          MinTTL: 60 # in seconds
-          TargetOriginId: s3origin
-          ViewerProtocolPolicy: "allow-all"
-        # This DefaultRootObject configuration is not enough.
-        DefaultRootObject: {{ environment.inputs.index_document }}
-        Enabled: true
-        HttpVersion: http2
-        Origins:
-          - DomainName: !GetAtt "S3Bucket.DomainName"
-            Id: s3origin
-            S3OriginConfig:
-              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
-        PriceClass: "PriceClass_All"
-
-# Outputs are the variables/parameters we will display in the AWS Proton console
-# But also these are the variables that will be available to use in your Proton service template.
 Outputs:
-  S3BucketName:
-    Description: "S3 Bucket Name"
-    Value: !Ref S3Bucket
-  S3BucketArn:
-    Description: "S3 Bucket ARN"
-    Value: !GetAtt "S3Bucket.Arn"
-  S3WebsiteURL:
-    Description: "S3 Bucket url"
-    Value: !GetAtt "S3Bucket.WebsiteURL"
-    Description: URL for website hosted on S3
-  S3BucketSecureURL:
-    Description: "Secure S3 Bucket url (https)"
-    Value: !Join
-      - ''
-      - - 'https://'
-        - !GetAtt "S3Bucket.DomainName"
-  DomainName:
-    Value:
-      {% if environment.inputs.domain_name %}
-        {{ environment.inputs.domain_name }}
-      {% else %}
-        - !GetAtt
-          - S3Bucket
-          - DomainName
-      {% endif %}
-  AccessKeyId:
-    Description: "S3 Access Key"
-    Value: !Ref PublishCredentials
-  AccessKeySecret:
-    Description: "S3 Secret Key"
-    Value: !GetAtt PublishCredentials.SecretAccessKey
-  DistributionId:
-    Description: "CloudFront Distribution ID"
-    Value: !Ref CloudFrontDistribution
-  Domain:
-    Description: "Cloudfront Domain"
-    Value: !GetAtt CloudFrontDistribution.DomainName
+  ProjectName:
+    Description: "Your static website project name"
+    Value: {{ environment.inputs.project_name }}
 
