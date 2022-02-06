@@ -7,6 +7,9 @@ schema:
       type: object
       description: "Input properties for my static website bucket"
       properties:
+        bucket_name:
+          type: string
+          description: "A name for your bucket, note that it must be unique across all accounts"
         domain_name:
           type: string
           description: "If you add a domain name we will setup cloudfront for you. Make sure you've registered this domain name with AWS Leave empty if you want to stick with the S3 Urls."
@@ -19,3 +22,7 @@ schema:
           type: string
           description: "Error document for the static website"
           default: error.html
+        default_ttl:
+          type: number
+          description: "Default TTL in seconds"
+          default: 3600
