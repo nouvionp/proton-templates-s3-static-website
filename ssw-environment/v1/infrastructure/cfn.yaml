@@ -6,12 +6,13 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+      # AccessControl: PublicRead
+      # BucketName: {{ environment.inputs.bucket_name }}
+      # PublicAccessBlockConfiguration:
+      #   BlockPublicAcls: true
+      #   BlockPublicPolicy: true
+      #   IgnorePublicAcls: true
+      #   RestrictPublicBuckets: true
       WebsiteConfiguration:
         IndexDocument: {{ environment.inputs.index_document }}
         ErrorDocument: {{ environment.inputs.error_document }}
@@ -61,7 +62,7 @@ Resources:
             - HEAD
             - OPTIONS
           Compress: true
-          DefaultTTL: {{ environment.inputs.default_ttl }}
+          DefaultTTL: 3600# in seconds
           ForwardedValues:
             Cookies:
               Forward: none
@@ -109,16 +110,16 @@ Outputs:
           - S3Bucket
           - DomainName
       {% endif %}
-    AccessKeyId:
-      Description: "S3 Access Key"
-      Value: !Ref PublishCredentials
-    AccessKeySecret:
-      Description: "S3 Secret Key"
-      Value: !GetAtt PublishCredentials.SecretAccessKey
-    DistributionId:
-      Description: "CloudFront Distribution ID"
-      Value: !Ref CloudFrontDistribution
-    Domain:
-      Description: "Cloudfront Domain"
-      Value: !GetAtt CloudFrontDistribution.DomainName
+  AccessKeyId:
+    Description: "S3 Access Key"
+    Value: !Ref PublishCredentials
+  AccessKeySecret:
+    Description: "S3 Secret Key"
+    Value: !GetAtt PublishCredentials.SecretAccessKey
+  DistributionId:
+    Description: "CloudFront Distribution ID"
+    Value: !Ref CloudFrontDistribution
+  Domain:
+    Description: "Cloudfront Domain"
+    Value: !GetAtt CloudFrontDistribution.DomainName
 
