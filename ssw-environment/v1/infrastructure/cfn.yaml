@@ -7,7 +7,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
-      BucketName: {{ environment.inputs.bucket_name }}
+      # BucketName: {{ environment.inputs.bucket_name }}
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -36,8 +36,6 @@ Resources:
             # and we want to test the code as soon as possible.
             # Principal: CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
 
-
-
   # Configure Access to CloudFront
   CloudFrontOriginAccessIdentity:
     Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
@@ -53,7 +51,7 @@ Resources:
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 404
-            ResponsePagePath: "/index.html"
+            ResponsePagePath: {{ environment.inputs.error_document }}
         DefaultCacheBehavior:
           AllowedMethods:
             - GET
