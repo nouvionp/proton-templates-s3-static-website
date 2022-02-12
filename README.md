@@ -14,46 +14,74 @@ The service template will be responsible for creating the pipeline that will dep
 
 ## CLI Helpers
 
-### Environment template
+Having to create a new template version for testing is time consuming, template sync is nice but when building from scratch is still a bit slow to quickly debug and iterate. Below are a set of instructions and CLI commands aiming to make updating/testing a version of a template easier/faster.
 
-Having to create a new template version for testing is time consuming, template sync is nice but when building from scratch is still a bit slow to quickly debug and iterate. Below is a set of CLI commands aiming to make updating a version of a template easier/faster.
+### Global setup
 
-#### Setup
-
-First let's set some vars to customize the CLI for your project.
+Define your template bucket and other vars once per session or save it in your shell config (.bashrc, .zshrc).
 
 ```bash
 export PROTON_S3_BUCKET=yokailabs-proton-templates
-export PROTON_TEMPLATE_NAME=ssw-environment
+export PROTON_ENV_TEMPLATE_NAME=ssw-environment
+export PROTON_SVC_TEMPLATE_NAME=ssw-service
 ```
 
-```bash
-# CD into template directory
-cd ~/Projects/proton-templates-s3-static-website
+Then change directory to your template directory
 
+```bash
+cd ~/Projects/proton-templates-s3-static-website
+```
+
+### Environment template
+
+```bash
 # Create Archive to be uploaded to S3
-tar -czvf $PROTON_TEMPLATE_NAME.tar.gz $PROTON_TEMPLATE_NAME/v1
+tar -czvf $PROTON_ENV_TEMPLATE_NAME.tar.gz $PROTON_ENV_TEMPLATE_NAME/v1
 
 # Upload to S3
-aws s3 cp $PROTON_TEMPLATE_NAME.tar.gz s3://$PROTON_S3_BUCKET/$PROTON_TEMPLATE_NAME.tar.gz
+aws s3 cp $PROTON_ENV_TEMPLATE_NAME.tar.gz s3://$PROTON_S3_BUCKET/$PROTON_ENV_TEMPLATE_NAME.tar.gz
 
 # Delete version 1.0 as you are iterating and developing your template ...
 aws proton delete-environment-template-version \
-    --template-name "$PROTON_TEMPLATE_NAME" \
+    --template-name "$PROTON_ENV_TEMPLATE_NAME" \
     --major-version "1" \
     --minor-version "0"
 
 # Update and publish new proton environment template minor version
 aws proton create-environment-template-version \
-    --template-name "$PROTON_TEMPLATE_NAME" \
-    --source s3="{bucket=$PROTON_S3_BUCKET, key=$PROTON_TEMPLATE_NAME.tar.gz}"
+    --template-name "$PROTON_ENV_TEMPLATE_NAME" \
+    --source s3="{bucket=$PROTON_S3_BUCKET, key=$PROTON_ENV_TEMPLATE_NAME.tar.gz}"
 
 aws proton update-environment-template-version \
-    --template-name "$PROTON_TEMPLATE_NAME" \
+    --template-name "$PROTON_ENV_TEMPLATE_NAME" \
     --major-version "1" \
     --minor-version "0" \
     --status "PUBLISHED"
 
 # Cleanup step - Delete the archive
-rm -f $PROTON_TEMPLATE_NAME.tar.gz
+rm -f $PROTON_ENV_TEMPLATE_NAME.tar.gz
+```
+
+### Service template
+
+```bash
+rm -f $PROTON_SVC_TEMPLATE_NAME.tar.gz
+tar -czvf $PROTON_SVC_TEMPLATE_NAME.tar.gz $PROTON_SVC_TEMPLATE_NAME/v1
+aws s3 cp $PROTON_SVC_TEMPLATE_NAME.tar.gz s3://$PROTON_S3_BUCKET/$PROTON_SVC_TEMPLATE_NAME.tar.gz
+
+aws proton delete-service-template-version \
+    --template-name "$PROTON_SVC_TEMPLATE_NAME" \
+    --major-version "1" \
+    --minor-version "0"
+
+aws proton create-service-template-version \
+    --template-name "$PROTON_SVC_TEMPLATE_NAME" \
+    --compatible-environment-templates '[{"templateName":"'$PROTON_ENV_TEMPLATE_NAME'","majorVersion":"1" }]' \
+    --source s3="{bucket=$PROTON_S3_BUCKET, key=$PROTON_SVC_TEMPLATE_NAME.tar.gz}"
+
+aws proton update-service-template-version \
+    --template-name "$PROTON_SVC_TEMPLATE_NAME" \
+    --major-version "1" \
+    --minor-version "1" \
+    --status "PUBLISHED"
 ```

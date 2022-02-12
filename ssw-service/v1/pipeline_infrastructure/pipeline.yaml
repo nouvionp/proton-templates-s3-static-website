@@ -21,8 +21,6 @@ Resources:
   PipelineArtifactsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      VersioningConfiguration:
-        Status: Enabled
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -41,8 +39,10 @@ Resources:
             Effect: Allow
             Resource:
               # Static website bucket
-              - "arn:aws:s3:::{{ service_instances[0].environment.outputs.S3BucketName }}"
-              - "arn:aws:s3:::{{ service_instances[0].environment.outputs.S3BucketName }}/*"
+            {% for service_instance in service_instances %}
+              - "arn:aws:s3:::{{ service_instance.inputs.bucket_name }}"
+              - "arn:aws:s3:::{{ service_instance.inputs.bucket_name }}/*"
+            {%- endfor %}
               # Pipeline bucket
               - !Sub "arn:aws:s3:::${PipelineArtifactsBucket}"
               - !Sub "arn:aws:s3:::${PipelineArtifactsBucket}/*"
@@ -137,12 +137,7 @@ Resources:
                 Configuration:
                   ConnectionArn: "{{ service.repository_connection_arn }}"
                   FullRepositoryId: "{{ service.repository_id }}"
-                  BranchName:
-                    {% if service_instance.inputs.branch_name %}
-                      "{{ service_instance.inputs.branch_name }}"
-                    {% else %}
-                        "{{ service.branch_name }}"
-                    {% endif %}
+                  BranchName: "{{ service.branch_name }}"
                 Name: Checkout
                 OutputArtifacts:
                   - Name: SourceArtifact
@@ -171,12 +166,7 @@ Resources:
                   Provider: S3
                   Version: "1"
                 Configuration:
-                  BucketName:
-                    {% if service_instance.inputs.is_prod %}
-                      "{{ service_instance.environment.outputs.S3BucketName }}"
-                    {% else %}
-                      "{{ service_instance.environment.outputs.S3BucketName }}/{{ service_instance.name }}"
-                    {% endif %}
+                  BucketName: "{{ service_instance.inputs.bucket_name }}"
                   Extract: "true"
                 InputArtifacts:
                   - Name: BuildOutput

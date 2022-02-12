@@ -1,20 +1,27 @@
 schema:
   format:
     openapi: "3.0.0"
-  service_input_type: "WebsiteInputs"
+  service_input_type: "InstanceInputs"
   pipeline_input_type: "PipelineInputs"
   types:
-    WebsiteInputs:
+    InstanceInputs:
       type: object
       description: "Inputs for your static website hosted on S3"
+      required:
+        - bucket_name
       properties:
-        branch_name:
+        bucket_name:
           type: string
-          description: "The branch to use for this instance of the website"
-        is_prod:
-          type: boolean
-          description: "Is this prod stage and branch"
-          default: false
+          description: "A name for your bucket"
+        index_document:
+          type: string
+          description: "Index document for the static website"
+          default: index.html
+        error_document:
+          type: string
+          description: "Error document for the static website"
+          default: error.html
+
     PipelineInputs:
       type: object
       description: "Inputs for your static website pipeline"
