@@ -85,3 +85,7 @@ aws proton update-service-template-version \
     --minor-version "0" \
     --status "PUBLISHED"
 ```
+
+### Security
+
+* After you've created your service instances (websites) make sure to edit the S3 bucket and block all public access
