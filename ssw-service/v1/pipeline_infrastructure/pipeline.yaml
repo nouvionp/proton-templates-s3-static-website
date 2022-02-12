@@ -26,8 +26,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-    UpdateReplacePolicy: Delete
-    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
 
   # Our pipeline role needs extra permissions which can be added via a custom policy.
   PipelineRoleDefaultPolicy:
