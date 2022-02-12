@@ -97,5 +97,5 @@ Outputs:
     Description: "CloudFront Distribution ID"
     Value: !Join
       - ""
-      - - !GetAtt "CloudFrontDistribution.DomainName
+      - - !GetAtt "CloudFrontDistribution.DomainName"
         - "/{{ service_instance.inputs.index_document }}"
