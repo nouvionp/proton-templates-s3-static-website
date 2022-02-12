@@ -82,6 +82,6 @@ aws proton create-service-template-version \
 aws proton update-service-template-version \
     --template-name "$PROTON_SVC_TEMPLATE_NAME" \
     --major-version "1" \
-    --minor-version "1" \
+    --minor-version "0" \
     --status "PUBLISHED"
 ```
