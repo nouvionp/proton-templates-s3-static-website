@@ -3,14 +3,9 @@
 This template is meant to help quickly create, configure and deploy a static website on AWS S3 using AWS Proton.
 This code is heavily inspired from the static website CloudFormation template from: https://www.coletiv.com/blog/how-to-use-aws-cloud-formation-to-setup-the-infrastructure-for-a-static-website/
 
-The environment template will be responsible for creating the S3 bucket with the configuration required (IAM roles, recommended security settings, Etc).
-
-The service template will be responsible for creating the pipeline that will deploy your code build output to the S3 bucket.
-
 ## TODOs
 
-1. Add CloudFront setup
-2. Add custom domain name as an option
+1. Add custom domain name as an option
 
 ## CLI Helpers
 
@@ -18,7 +13,7 @@ Having to create a new template version for testing is time consuming, template 
 
 ### Global setup
 
-Define your template bucket and other vars once per session or save it in your shell config (.bashrc, .zshrc).
+Define your template bucket and other vars once per session or save it in your shell config (.bashrc, .zshrc) or maybe use a .env file.
 
 ```bash
 export PROTON_S3_BUCKET=yokailabs-proton-templates
@@ -86,6 +81,12 @@ aws proton update-service-template-version \
     --status "PUBLISHED"
 ```
 
-### Security
+### Security - Post setup steps.
 
-* After you've created your service instances (websites) make sure to edit the S3 bucket and block all public access
+* After you've created your service instances (websites) make sure to edit the S3 bucket and block all public access, we're leaving public by default in the CloudFormation template as we would not be able to apply the S3 policy.
+* See: 'CloudFormation s3:PutBucketPolicy Access Denied'
+
+### Notes
+
+You will have to wait until the pipeline as completed its first build and until cloudfront was fully deployed before being able to load your site using the CloudfrontUrl.
+i,e: 'CloudfrontUrl	d1geeahx8q8jj3.cloudfront.net/index.html'

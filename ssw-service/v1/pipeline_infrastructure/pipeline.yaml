@@ -22,8 +22,8 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
     UpdateReplacePolicy: Retain
@@ -52,7 +52,6 @@ Resources:
               - logs:*
             Effect: Allow
             Resource: "*"
-
           - Action: sts:AssumeRole
             Effect: Allow
             Resource: !GetAtt

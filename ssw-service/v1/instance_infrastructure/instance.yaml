@@ -7,10 +7,10 @@ Resources:
     Properties:
       BucketName: {{ service_instance.inputs.bucket_name }}
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
       WebsiteConfiguration:
         IndexDocument: {{ service_instance.inputs.index_document }}
         ErrorDocument: {{ service_instance.inputs.error_document }}
