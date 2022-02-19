@@ -7,8 +7,12 @@ schema:
       type: object
       description: "S3 static website environment inputs"
       required:
+        - project_ssm_name
         - project_name
       properties:
+        project_ssm_name:
+          type: string
+          description: "A unique name for the variable where we ill store the name for your Project"
         project_name:
           type: string
           description: "A name for your Project"
