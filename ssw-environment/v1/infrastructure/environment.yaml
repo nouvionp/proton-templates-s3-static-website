@@ -6,12 +6,15 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Description: "Name of the static website project"
-      Name: "ProjectName"
+      Name: {{ environment.inputs.project_ssm_name }}
       Type: String
       Value: {{ environment.inputs.project_name }}
   # TODO: Potentially create a shared ssl certificate here?
 
 Outputs:
+  ProjectSSMVariableName:
+    Description: "The SSM variable name with your project name"
+    Value: {{ environment.inputs.project_ssm_name }}
   ProjectName:
     Description: "Your static website project name"
     Value: {{ environment.inputs.project_name }}
