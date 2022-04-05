@@ -13,6 +13,6 @@ schema:
         project_ssm_name:
           type: string
           description: "A unique name for the variable where we ill store the name for your Project"
-        project_name:
+        project_name_test:
           type: string
           description: "A name for your Project"
