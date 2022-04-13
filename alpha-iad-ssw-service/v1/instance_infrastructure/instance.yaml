@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: S3 static website
+Resources:
+  # Create an S3 bucket which will host our HTML/CSS/JS code
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: {{ service_instance.inputs.bucket_name }}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        IndexDocument: {{ service_instance.inputs.index_document }}
+        ErrorDocument: {{ service_instance.inputs.error_document }}
+    # Here we're just telling CloudFormation to NOT delete our S3 bucket when the CloudFormation stack is deleted.
+    # This also means we could delete our stack and rebuild it but still retain our S3 bucket.
+    DeletionPolicy: Retain
+
+  # Create Read policy for CloudFront to be able to access your bucket.
+  S3BucketReadPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+            - "s3:GetObject"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref S3Bucket
+                - /*
+            Principal: "*"
+            # In an ideal scenario the policy would only grant these rights to CloudFront,
+            # we do not do it from scratch as many projects start without having a domain name specified
+            # and we want to test the code as soon as possible.
+            # Principal: CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+
+  # Configure Access to CloudFront
+  CloudFrontOriginAccessIdentity:
+    Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref S3Bucket
+
+  # Configure CloudFront
+  CloudFrontDistribution:
+    Type: "AWS::CloudFront::Distribution"
+    Properties:
+      DistributionConfig:
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 404
+            ResponsePagePath: "/{{ service_instance.inputs.error_document }}"
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          DefaultTTL: 3600 # in seconds
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: false
+          MaxTTL: 86400 # in seconds
+          MinTTL: 60 # in seconds
+          TargetOriginId: s3origin
+          ViewerProtocolPolicy: "allow-all"
+        # This DefaultRootObject configuration is not enough.
+        DefaultRootObject: "/{{ service_instance.inputs.index_document }}"
+        Enabled: true
+        HttpVersion: http2
+        Origins:
+          - DomainName: !GetAtt "S3Bucket.DomainName"
+            Id: s3origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+        PriceClass: "PriceClass_100" # North America and Europe only
+
+# Outputs are the variables/parameters we will display in the AWS Proton console
+Outputs:
+  S3BucketName:
+    Description: "S3 Bucket Name"
+    Value: !Ref S3Bucket
+  S3BucketArn:
+    Description: "S3 Bucket ARN"
+    Value: !GetAtt "S3Bucket.Arn"
+  CloudfrontUrl:
+    Description: "CloudFront Distribution ID"
+    Value: !Join
+      - ""
+      - - !GetAtt "CloudFrontDistribution.DomainName"
+        - "/{{ service_instance.inputs.index_document }}"
