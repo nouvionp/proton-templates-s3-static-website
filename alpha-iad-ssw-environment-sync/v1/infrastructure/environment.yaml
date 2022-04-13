@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "We do not need any shared resources at this time, so this environment is just a shell. Because CloudFormation requires at least one resource, we will create a SSM parameter"
+Resources:
+  ProjectName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: "Name of the static website project"
+      Name: {{ environment.inputs.project_ssm_name }}
+      Type: String
+      Value: {{ environment.inputs.project_name }}
+  # TODO: Potentially create a shared ssl certificate here?
+
+Outputs:
+  ProjectSSMVariableName:
+    Description: "The SSM variable name with your project name"
+    Value: environment.inputs.project_ssm_name
+  ProjectName:
+    Description: "Your static website project name"
+    Value: {{ environment.inputs.project_name }}
+  DummyName:
+    Description: "Your static website project name"
+    Value: {{ environment.inputs.project_name }}

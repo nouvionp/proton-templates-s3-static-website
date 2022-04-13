@@ -1,2 +1,5 @@
-ssw-environment:1
 alpha-iad-lambda-env:1
+alpha-iad-ssw-environment-tpl:1
+alpha-iad-tf-env-tpl:2
+iad-ssw-environment-sync:1
+ssw-environment:1
