@@ -21,6 +21,18 @@ schema:
           type: string
           description: "Error document for the static website"
           default: error.html
+        number_test:
+          type: number
+          description: "Test of number"
+          default: 30
+          minimum: 4
+          maximum: 1024
+        integer_test:
+          type: integer
+          description: "Test of integer"
+          default: 30
+          minimum: 4
+          maximum: 1024
 
     PipelineInputs:
       type: object
@@ -50,3 +62,15 @@ schema:
           type: string
           description: "File pattern to filter which files to deploy"
           default: "**/*"
+        number_test:
+          type: number
+          description: "Test of number"
+          default: 30
+          minimum: 4
+          maximum: 1024
+        integer_test:
+          type: integer
+          description: "Test of integer"
+          default: 30
+          minimum: 4
+          maximum: 1024
