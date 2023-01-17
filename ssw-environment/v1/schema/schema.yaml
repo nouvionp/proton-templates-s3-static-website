@@ -12,11 +12,7 @@ schema:
       properties:
         project_ssm_name:
           type: string
-          description: "A unique name for the variable where we ill store the name for your Project"
+          description: "A unique name for the variable where we will store the name for your Project"
         project_name:
           type: string
-          description: "A name for your Project"
-        project_name_2:
-          type: string
-          description: "A name for your Project - delete me"
-          
+          description: "A name for your Project"          
