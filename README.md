@@ -83,10 +83,10 @@ aws proton update-service-template-version \
 
 ### Security - Post setup steps.
 
-* After you've created your service instances (websites) make sure to edit the S3 bucket and block all public access, we're leaving public by default in the CloudFormation template as we would not be able to apply the S3 policy.
+* After you've created your service instances (websites) make sure to edit the S3 bucket and block all public access, we're leaving public by default in the CloudFormation template as otherwise we would not be able to apply the S3 policy.
 * See: 'CloudFormation s3:PutBucketPolicy Access Denied'
 
 ### Notes
 
-You will have to wait until the pipeline as completed its first build and until cloudfront was fully deployed before being able to load your site using the CloudfrontUrl.
+You will have to wait until the pipeline has completed its first build and until cloudfront was fully deployed before being able to load your site using the CloudfrontUrl.
 i,e: 'CloudfrontUrl	d1geeahx8q8jj3.cloudfront.net/index.html'
